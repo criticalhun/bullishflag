@@ -6,7 +6,6 @@ const CMC_API_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listing
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = searchParams.get('limit') || '100';
-  // Ha a time paramétert nem használja a CMC API, nem kell külön változóban.
 
   const headers = {
     'X-CMC_PRO_API_KEY': process.env.CMC_API_KEY!,
@@ -25,8 +24,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(response.data);
-  } catch (err) {
-    // Az 'err' típusa legyen unknown, és csak ha Error, akkor van .message
+  } catch (err: unknown) {
     let message = 'API Error';
     if (err && typeof err === 'object' && 'message' in err) {
       message = (err as { message?: string }).message || message;

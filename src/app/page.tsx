@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ThemeToggle';
+import ChatWithAI from '@/components/ChatWithAI';   // <<< EZT ADD HOZZÁ
 
 type Coin = {
   id: number;
@@ -25,9 +26,11 @@ const timeOptions = [
   { label: '90 Days', value: '90d' },
 ];
 
+const limitOptions = [100, 500, 1000, 2000, 5000] as const;
+
 export default function Home() {
   const [coins, setCoins] = useState<Coin[]>([]);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState<number>(100);
   const [time, setTime] = useState('24h');
   const [loading, setLoading] = useState(false);
 
@@ -50,10 +53,17 @@ export default function Home() {
     }
   };
 
+  // Csak a top 10-t jelenítjük meg
+  const topCoins = coins
+    .sort((a, b) => (getPercentageChange(b) ?? 0) - (getPercentageChange(a) ?? 0))
+    .slice(0, 10);
+
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center w-full">BullishFlag.xyz – Top Performing Coins</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-center w-full">
+          BullishFlag.xyz – Top Performing Coins
+        </h1>
         <div className="absolute right-4 top-4">
           <ThemeToggle />
         </div>
@@ -67,7 +77,7 @@ export default function Home() {
             onChange={(e) => setLimit(Number(e.target.value))}
             className="ml-2 p-1 border rounded dark:bg-black dark:border-gray-600"
           >
-            {[10, 20, 50, 100, 500].map((n) => (
+            {limitOptions.map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
@@ -101,22 +111,23 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {coins
-                .sort((a, b) => (getPercentageChange(b) ?? 0) - (getPercentageChange(a) ?? 0))
-                .map((coin, i) => (
-                  <tr key={coin.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="p-2">{i + 1}</td>
-                    <td className="p-2 font-semibold">{coin.name} ({coin.symbol})</td>
-                    <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
-                    <td className={`p-2 ${getPercentageChange(coin)! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {getPercentageChange(coin)?.toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
+              {topCoins.map((coin, i) => (
+                <tr key={coin.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="p-2">{i + 1}</td>
+                  <td className="p-2 font-semibold">{coin.name} ({coin.symbol})</td>
+                  <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
+                  <td className={`p-2 ${getPercentageChange(coin)! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {getPercentageChange(coin)?.toFixed(2)}%
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* ITT HÍVD MEG AZ AI CHAT KOMPONENST */}
+      <ChatWithAI />
     </main>
   );
 }

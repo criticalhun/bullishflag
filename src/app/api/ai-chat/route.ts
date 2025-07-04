@@ -23,9 +23,13 @@ export async function POST(req: NextRequest) {
     );
     const answer = response.data.choices[0].message.content;
     return NextResponse.json({ answer });
-  } catch (err: any) {
+  } catch (err) {
+    let message = 'API error';
+    if (err && typeof err === 'object' && 'message' in err) {
+      message = (err as { message?: string }).message || message;
+    }
     return NextResponse.json(
-      { error: 'API error', message: err?.message || 'Unknown error' },
+      { error: 'API error', message },
       { status: 500 }
     );
   }

@@ -1,4 +1,3 @@
-// src/app/api/ai-chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
@@ -21,9 +20,9 @@ export async function POST(req: NextRequest) {
         },
       }
     );
-    const answer = response.data.choices[0].message.content;
+    const answer: string = response.data.choices[0].message.content;
     return NextResponse.json({ answer });
-  } catch (err) {
+  } catch (err) { // <-- Itt NINCS : any!
     let message = 'API error';
     if (err && typeof err === 'object' && 'message' in err) {
       message = (err as { message?: string }).message || message;

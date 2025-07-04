@@ -20,9 +20,12 @@ export async function POST(req: NextRequest) {
         },
       }
     );
-    const answer: string = response.data.choices[0].message.content;
+    const answer = response.data.choices[0].message.content;
     return NextResponse.json({ answer });
-  } catch (err) { // <-- Itt NINCS : any!
+  } catch (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    err: any
+  ) {
     let message = 'API error';
     if (err && typeof err === 'object' && 'message' in err) {
       message = (err as { message?: string }).message || message;

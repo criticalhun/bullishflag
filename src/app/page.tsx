@@ -62,7 +62,7 @@ export default function Home() {
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-center w-full">
-          BullishFlag.xyz – Top Performing Coins
+          Top Performing Coins
         </h1>
         <div className="absolute right-4 top-4">
           <ThemeToggle />

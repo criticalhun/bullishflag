@@ -1,26 +1,25 @@
-// src/components/ui/select.tsx
 'use client';
 
-import * as React from 'react';
+import * as React from "react";
 
 type SelectProps = {
-  children: React.ReactNode;
   onValueChange?: (value: string) => void;
+  children: React.ReactNode;
 };
 
-export function Select({ children, onValueChange }: SelectProps) {
+export function Select({ onValueChange, children }: SelectProps) {
   return (
     <div>
-      {React.Children.map(children, (child) =>
+      {React.Children.map(children, child =>
         React.isValidElement(child)
-          ? React.cloneElement(child, { onValueChange })
+          ? React.cloneElement(child as React.ReactElement<unknown>, { onValueChange })
           : child
       )}
     </div>
   );
 }
 
-type SelectTriggerProps = React.ComponentProps<'button'> & {
+type SelectTriggerProps = React.ComponentProps<"button"> & {
   children: React.ReactNode;
 };
 
@@ -44,7 +43,7 @@ type SelectValueProps = {
 export function SelectValue({ placeholder, children }: SelectValueProps) {
   return (
     <span className="text-gray-700 dark:text-gray-300">
-      {children ?? placeholder}
+      {children || placeholder}
     </span>
   );
 }
@@ -61,7 +60,7 @@ export function SelectContent({ children }: SelectContentProps) {
   );
 }
 
-type SelectItemProps = React.LiHTMLAttributes<HTMLLIElement> & {
+type SelectItemProps = React.ComponentProps<"li"> & {
   value: string;
   children: React.ReactNode;
   onValueChange?: (value: string) => void;
@@ -77,7 +76,7 @@ export function SelectItem({
     <li
       {...props}
       className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-      onClick={() => onValueChange?.(value)}
+      onClick={() => onValueChange && onValueChange(value)}
     >
       {children}
     </li>

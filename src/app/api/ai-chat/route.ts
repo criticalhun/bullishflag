@@ -1,33 +1,21 @@
-// src/app/api/ai-chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
+import { searchWeb } from '@/lib/searchWeb';
 
 export async function POST(req: NextRequest) {
-  const { prompt } = await req.json();
-
   try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 512,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-      }
-    );
-    const answer = response.data.choices[0].message.content;
-    return NextResponse.json({ answer });
-  } catch (error: unknown) {
-    let message = 'API error';
-    if (typeof error === 'object' && error !== null && 'message' in error) {
-      message = (error as { message?: string }).message ?? message;
+    const { prompt } = await req.json();
+
+    // Példa: AI válasz + web keresés
+    let newsResults: { title: string; link: string; snippet: string }[] = [];
+    if (prompt && prompt.toLowerCase().includes('news')) {
+      newsResults = await searchWeb(prompt);
     }
-    return NextResponse.json({ error: 'API error', message }, { status: 500 });
+
+    return NextResponse.json({ answer: newsResults });
+  } catch {
+    return NextResponse.json(
+      { error: 'API error', message: 'An unexpected error occurred.' },
+      { status: 500 }
+    );
   }
 }

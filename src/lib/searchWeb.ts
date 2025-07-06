@@ -1,40 +1,41 @@
 // src/lib/searchWeb.ts
+export async function searchWeb(query: string): Promise<{ title: string, link: string }[]> {
+  const API_KEY = process.env.SERPAPI_KEY!;
+  const params = new URLSearchParams({
+    q: query,
+    api_key: API_KEY,
+    engine: "google",
+    hl: "en",
+    num: "5" // max találat
+  });
 
-export interface SearchResult {
-  title: string;
-  snippet: string;
-}
-
-export async function searchWeb(query: string): Promise<SearchResult[]> {
-  const API_KEY = process.env.SERPAPI_KEY;
-  if (!API_KEY) {
-    throw new Error("Missing SERPAPI_KEY in environment");
-  }
-
-  const url = new URL("https://serpapi.com/search.json");
-  url.searchParams.set("engine", "google");
-  url.searchParams.set("q", query);
-  url.searchParams.set("api_key", API_KEY);
-
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    throw new Error(`Search API error: ${res.status} ${res.statusText}`);
-  }
+  const res = await fetch(`https://serpapi.com/search.json?${params}`);
+  if (!res.ok) throw new Error("SerpAPI request failed");
 
   const data = await res.json();
-  const organic = data.organic_results;
-  if (!Array.isArray(organic)) {
-    return [];
+
+  // Google hírekből, vagy sima találatból keresünk cím+link párokat
+  const results: { title: string, link: string }[] = [];
+
+  // Először Google News találatok
+  if (data.news_results && Array.isArray(data.news_results)) {
+    for (const n of data.news_results) {
+      results.push({
+        title: n.title,
+        link: n.link
+      });
+    }
   }
 
-  // Definiáljuk, mit várunk a találatokból
-  type RawResult = { title: unknown; snippet: unknown };
+  // Ha nincsenek news_results, próbáljunk sima találatokat
+  if (results.length === 0 && data.organic_results && Array.isArray(data.organic_results)) {
+    for (const n of data.organic_results) {
+      results.push({
+        title: n.title,
+        link: n.link
+      });
+    }
+  }
 
-  return (organic as RawResult[])
-    .slice(0, 3)
-    .map((r) => ({
-      title: typeof r.title === "string" ? r.title : String(r.title),
-      snippet:
-        typeof r.snippet === "string" ? r.snippet : String(r.snippet),
-    }));
+  return results;
 }

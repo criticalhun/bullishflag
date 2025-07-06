@@ -1,13 +1,14 @@
 // src/app/api/ai-chat/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import OpenAI, { ChatCompletionRequestMessage } from 'openai';
 import { searchWeb } from '@/lib/searchWeb';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// Ez a pontosított system prompt:
-const systemMessage = {
+// Explicit típusmegadás:
+const systemMessage: ChatCompletionRequestMessage = {
   role: 'system',
   content: `
 You are CryptoBot, an AI assistant specialized in cryptocurrencies.
@@ -19,11 +20,11 @@ each as its own bullet or numbered item, without extra commentary or raw price s
 export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
 
-  // 1) Első kör: elküldjük a user promptot és a function definíciót
+  // 1) Első kör: user prompt + function definíció
   const initial = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
     messages: [
-      systemMessage,                // ← ide került
+      systemMessage,                    // most már jól típusozott
       { role: 'user', content: prompt },
     ],
     functions: [
@@ -42,16 +43,15 @@ export async function POST(req: NextRequest) {
 
   const msg = initial.choices[0].message;
 
-  // 2) Ha a modell hívta a searchWeb-et, lefuttatjuk a keresést
   if (msg.function_call) {
     const { query } = JSON.parse(msg.function_call.arguments);
     const results = await searchWeb(query);
 
-    // 3) Második kör: visszaküldjük a keresési eredményeket ugyanazzal a system prompttal
+    // 2) Második kör: visszaküldjük az eredményeket
     const followUp = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        systemMessage,             // ← és ide is
+        systemMessage,                   // ide is ugyanaz a típus
         { role: 'user', content: prompt },
         {
           role: 'function',
@@ -64,6 +64,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ answer: followUp.choices[0].message.content });
   }
 
-  // 4) Ha nem hívott functiont, sima választ adunk
+  // 3) Ha nem hívott functiont, simán visszaadjuk a content-et
   return NextResponse.json({ answer: msg.content });
 }

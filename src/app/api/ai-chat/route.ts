@@ -28,9 +28,6 @@ export async function POST(req: NextRequest) {
     if (typeof error === 'object' && error !== null && 'message' in error) {
       message = (error as { message?: string }).message ?? message;
     }
-    return NextResponse.json(
-      { error: 'API error', message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'API error', message }, { status: 500 });
   }
 }

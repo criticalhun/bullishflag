@@ -6,7 +6,7 @@ export interface SearchResult {
 }
 
 export async function searchWeb(query: string): Promise<SearchResult[]> {
-  const API_KEY = process.env.SERPAPI_KEY!;
+  const API_KEY = process.env.SERPAPI_KEY;
   if (!API_KEY) {
     throw new Error("Missing SERPAPI_KEY in environment");
   }
@@ -22,13 +22,19 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
   }
 
   const data = await res.json();
-  // Vegyük az első 3 organikus találatot
-  const results = (data.organic_results || [])
-    .slice(0, 3)
-    .map((r: any) => ({
-      title: r.title,
-      snippet: r.snippet,
-    }));
+  const organic = data.organic_results;
+  if (!Array.isArray(organic)) {
+    return [];
+  }
 
-  return results;
+  // Definiáljuk, mit várunk a találatokból
+  type RawResult = { title: unknown; snippet: unknown };
+
+  return (organic as RawResult[])
+    .slice(0, 3)
+    .map((r) => ({
+      title: typeof r.title === "string" ? r.title : String(r.title),
+      snippet:
+        typeof r.snippet === "string" ? r.snippet : String(r.snippet),
+    }));
 }

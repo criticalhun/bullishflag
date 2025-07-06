@@ -1,32 +1,36 @@
 // src/app/api/ai-chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { searchWeb } from '@/lib/searchWeb';
+import axios from 'axios';
 
 export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
 
-  // SYSTEM üzenet a prompt stílusához – csak címsorokat várunk
-  const systemMessage = {
-    role: 'system',
-    content: `
-You are CryptoBot, an AI assistant specialized in cryptocurrencies.
-When asked for “news headlines,” you must return exactly the titles of the top web search results, each as an item, without extra commentary or price stats.
-`.trim(),
-  };
-
   try {
-    // 1. Lekérjük a keresési eredményeket (például a SerpAPI-t használva)
-    const newsResults = await searchWeb(prompt);
-
-    // 2. Visszaadjuk őket a frontendnek egy answer kulcs alatt – TÖMBBEN!
-    // Példa:
-    // [{ title: "Bitcoin breaks $100K", link: "https://news.com/article" }, ...]
-    return NextResponse.json({ answer: newsResults });
-  } catch (err) {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 512,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+      }
+    );
+    const answer = response.data.choices[0].message.content;
+    return NextResponse.json({ answer });
+  } catch (error: unknown) {
     let message = 'API error';
-    if (err && typeof err === 'object' && 'message' in err) {
-      message = (err as { message?: string }).message || message;
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message?: string }).message ?? message;
     }
-    return NextResponse.json({ error: 'API error', message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'API error', message },
+      { status: 500 }
+    );
   }
 }

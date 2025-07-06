@@ -4,33 +4,20 @@
 import * as React from 'react';
 
 type SelectProps = {
-  value?: string;
-  onValueChange?: (value: string) => void;
   children: React.ReactNode;
+  onValueChange?: (value: string) => void;
 };
 
-export function Select({ value, onValueChange, children }: SelectProps) {
-  // Rekurzív függvény a propok bedolgozására
-  const cloneChildren = (nodes: React.ReactNode): React.ReactNode => {
-    return React.Children.map(nodes, (child) => {
-      if (!React.isValidElement(child)) return child;
-
-      // Ha SelectItem, injektáljuk az onValueChange-t
-      const extraProps: any = {};
-      if (child.type === SelectItem) {
-        extraProps.onValueChange = onValueChange;
-      }
-
-      // Ha vannak alchildren, rekurzívan klónozzuk azokat is
-      if (child.props.children) {
-        extraProps.children = cloneChildren(child.props.children);
-      }
-
-      return React.cloneElement(child, extraProps);
-    });
-  };
-
-  return <div>{cloneChildren(children)}</div>;
+export function Select({ children, onValueChange }: SelectProps) {
+  return (
+    <div>
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, { onValueChange })
+          : child
+      )}
+    </div>
+  );
 }
 
 type SelectTriggerProps = React.ComponentProps<'button'> & {
@@ -57,7 +44,7 @@ type SelectValueProps = {
 export function SelectValue({ placeholder, children }: SelectValueProps) {
   return (
     <span className="text-gray-700 dark:text-gray-300">
-      {children || placeholder}
+      {children ?? placeholder}
     </span>
   );
 }
@@ -74,7 +61,7 @@ export function SelectContent({ children }: SelectContentProps) {
   );
 }
 
-type SelectItemProps = React.ComponentProps<'li'> & {
+type SelectItemProps = React.LiHTMLAttributes<HTMLLIElement> & {
   value: string;
   children: React.ReactNode;
   onValueChange?: (value: string) => void;

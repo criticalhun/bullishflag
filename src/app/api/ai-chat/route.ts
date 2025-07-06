@@ -1,48 +1,57 @@
 // src/app/api/ai-chat/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { searchWeb } from '@/lib/searchWeb';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Ez a pontosított system prompt:
+const systemMessage = {
+  role: 'system',
+  content: `
+You are CryptoBot, an AI assistant specialized in cryptocurrencies.
+When asked for “news headlines,” you must return exactly the titles of the top web search results,
+each as its own bullet or numbered item, without extra commentary or raw price stats.
+  `.trim(),
+};
 
 export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
 
-  // lépés: chat completion function calling
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',    // vagy gpt-3.5-turbo-0613
+  // 1) Első kör: elküldjük a user promptot és a function definíciót
+  const initial = await openai.chat.completions.create({
+    model: 'gpt-3.5-turbo',
     messages: [
-      { role: 'system', content: 'You are CryptoBot, expert in crypto markets.' },
+      systemMessage,                // ← ide került
       { role: 'user', content: prompt },
     ],
     functions: [
       {
         name: 'searchWeb',
-        description: 'Perform a web search and return concise snippets.',
+        description: 'Retrieve live web search snippets',
         parameters: {
           type: 'object',
-          properties: {
-            query: { type: 'string', description: 'Search query' },
-          },
+          properties: { query: { type: 'string' } },
           required: ['query'],
         },
       },
     ],
-    function_call: { name: 'searchWeb' },
+    function_call: 'auto',
   });
 
-  // A modell hívja a függvényt:
-  if (completion.choices[0].message.function_call) {
-    const args = JSON.parse(completion.choices[0].message.function_call.arguments);
-    const results = await searchWeb(args.query);
+  const msg = initial.choices[0].message;
 
-    // Másodszor: megkérdezzük a modellt, hogy a search eredmények alapján adja a végleges választ
+  // 2) Ha a modell hívta a searchWeb-et, lefuttatjuk a keresést
+  if (msg.function_call) {
+    const { query } = JSON.parse(msg.function_call.arguments);
+    const results = await searchWeb(query);
+
+    // 3) Második kör: visszaküldjük a keresési eredményeket ugyanazzal a system prompttal
     const followUp = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are CryptoBot, expert in crypto markets.' },
+        systemMessage,             // ← és ide is
         { role: 'user', content: prompt },
         {
           role: 'function',
@@ -55,6 +64,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ answer: followUp.choices[0].message.content });
   }
 
-  // Ha nem hívott függvényt, simán adja vissza az első választ
-  return NextResponse.json({ answer: completion.choices[0].message.content });
+  // 4) Ha nem hívott functiont, sima választ adunk
+  return NextResponse.json({ answer: msg.content });
 }

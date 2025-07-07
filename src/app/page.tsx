@@ -1,11 +1,11 @@
-// src/app/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ThemeToggle';
-import PerformanceChart from '@/components/PerformanceChart';   // ← új chart komponens
+import PerformanceChart from '@/components/PerformanceChart';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
+import { Separator } from "@/components/ui/separator"
 
 type Coin = {
   id: number;
@@ -79,7 +79,7 @@ export default function Home() {
       </div>
 
       <div className="flex flex-wrap gap-4 justify-center mb-6">
-        {/* LIMIT SELECT */}
+        {/* LIMIT SELECT (shadcn-ui) */}
         <div className="text-sm flex items-center">
           <span className="mr-2">Limit:</span>
           <Select value={limit.toString()} onValueChange={val => setLimit(Number(val))}>
@@ -94,7 +94,7 @@ export default function Home() {
           </Select>
         </div>
 
-        {/* TIMEFRAME SELECT */}
+        {/* TIMEFRAME SELECT (shadcn-ui) */}
         <div className="text-sm flex items-center">
           <span className="mr-2">Timeframe:</span>
           <Select value={time} onValueChange={setTime}>
@@ -110,7 +110,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PERFORMANCE CHART */}
+      {/* PERFORMANCE CHART (opcionális, ha van ilyen komponens) */}
       <PerformanceChart data={chartData} rangeLabel={time} />
 
       {loading ? (

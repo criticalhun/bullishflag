@@ -108,7 +108,10 @@ export default function Home() {
         {/* TIMEFRAME SELECT */}
         <div className="text-sm flex items-center">
           <span className="mr-2">Timeframe:</span>
-          <Select value={time} onValueChange={setTime}>
+          <Select
+            value={time}
+            onValueChange={val => setTime(val as typeof time)}
+          >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Select timeframe" />
             </SelectTrigger>

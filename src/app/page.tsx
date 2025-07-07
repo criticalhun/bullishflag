@@ -5,7 +5,6 @@ import ThemeToggle from '@/components/ThemeToggle';
 import PerformanceChart from '@/components/PerformanceChart';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
-import { Separator } from "@/components/ui/separator"
 
 type Coin = {
   id: number;

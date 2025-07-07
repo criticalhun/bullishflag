@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ThemeToggle';
 import PerformanceChart from '@/components/PerformanceChart';
+// Separator import TÖRÖLVE! (Hiba miatt)
+// import { Separator } from '@/components/ui/separator';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
 

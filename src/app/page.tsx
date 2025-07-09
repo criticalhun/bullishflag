@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link'; // << EZT ADD HOZZÁ!
 import ThemeToggle from '@/components/ThemeToggle';
 import PerformanceChart from '@/components/PerformanceChart';
 import {
@@ -80,7 +81,7 @@ export default function Home() {
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-center w-full">
-          BullishFlag.xyz – Top Performing Coins
+          Top Performing Coins
         </h1>
         <div className="absolute right-4 top-4">
           <ThemeToggle />
@@ -150,7 +151,13 @@ export default function Home() {
                 >
                   <td className="p-2">{i + 1}</td>
                   <td className="p-2 font-semibold">
-                    {coin.name} ({coin.symbol})
+                    {/* EDDIG: {coin.name} ({coin.symbol}) */}
+                    <Link
+                      href={`/coins/${coin.symbol.toLowerCase()}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {coin.name} ({coin.symbol})
+                    </Link>
                   </td>
                   <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
                   <td

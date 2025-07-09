@@ -10,37 +10,39 @@ export async function POST(req: NextRequest) {
   try {
     const { prompt, context } = await req.json();
 
-    // Hibakeresés: Kiírjuk a logba, hogy mit kapott a backend
-    console.log('Received prompt:', prompt);
-    console.log('Received context (topCoins):', JSON.stringify(context, null, 2));
+    // --- HIBAKERESÉS ---
+    // Kiírjuk a logba, hogy mit kapott a backend. Ezt a Vercel logokban láthatod.
+    console.log('--- AI Chat Request ---');
+    console.log('Prompt:', prompt);
+    console.log('Context received:', context ? `Array with ${context.length} items` : 'null or undefined');
+    // console.log('Context data:', JSON.stringify(context, null, 2)); // Ezt csak akkor vedd ki a kommentből, ha részletesen látni akarod a teljes adatot
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    let systemContent = `
-      You are "BullishBot", an expert crypto market analyst for the BullishFlag.xyz website.
-      Your tone is confident and insightful. Answer the user's general crypto questions based on your general knowledge.
+    let systemMessage = `
+      You are "BullishBot", an expert crypto market analyst for BullishFlag.xyz.
+      Your primary goal is to analyze the real-time data provided to you.
+      
+      IMPORTANT: If the user's question can be answered from the "Current Top Coins Data", you MUST use that data and start your response with "Based on the data from the page...".
+      
+      If no data is provided in the context, or the question is general (e.g., "What is Bitcoin?"), answer from your general knowledge.
     `;
 
-    // Csak akkor használjuk a kontextust, ha az érvényes és tartalmaz elemeket
+    // Ha kaptunk érvényes, nem üres kontextust, akkor azt is hozzáadjuk a rendszerüzenethez
     if (context && Array.isArray(context) && context.length > 0) {
-      systemContent = `
-        You are "BullishBot", an expert crypto market analyst for the BullishFlag.xyz website.
-        Your tone is confident and insightful.
-        You MUST use the following JSON data as your primary context to answer the user's question. This data represents the current top-performing coins shown on the site.
-        
-        Current Top Coins Data:
-        ${JSON.stringify(context, null, 2)}
+      systemMessage += `
 
-        Analyze this data to answer the user's query about top performers, summaries, or specific coins from the list. Do not use your general knowledge if the question can be answered from this data.
+      Here is the Current Top Coins Data:
+      ${JSON.stringify(context, null, 2)}
       `;
     }
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // Ajánlott a jobb elemzési képességek miatt
+      model: 'gpt-4o',
       messages: [
-        { role: 'system', content: systemContent },
+        { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
       max_tokens: 350,
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ answer });
 
   } catch (error: unknown) {
-    console.error("AI Chat API Error:", error); // Hiba logolása
+    console.error("AI Chat API Error:", error);
     let message = 'An unknown error occurred';
     if (error instanceof Error) {
       message = error.message;

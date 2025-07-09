@@ -1,92 +1,81 @@
+// src/components/ChatWithAI.tsx
 'use client';
 
 import { useState } from 'react';
 
-type NewsItem = {
-  title: string;
-  link: string;
-  snippet?: string;
+type Coin = {
+  name: string;
+  symbol: string;
 };
 
-export default function ChatWithAI() {
+interface ChatWithAIProps {
+  topCoins: Coin[];
+}
+
+export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<NewsItem[] | string>('');
+  const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const askAI = async () => {
+  // --- JAVÍTÁS: Ellenőrizzük, hogy van-e adat ---
+  const isContextReady = topCoins && topCoins.length > 0;
+
+  const handleAsk = async () => {
+    // Dupla ellenőrzés, bár a gomb le lesz tiltva
+    if (!question.trim() || !isContextReady) return;
+
     setLoading(true);
     setError('');
     setAnswer('');
+
     try {
       const res = await fetch('/api/ai-chat', {
         method: 'POST',
-        body: JSON.stringify({ prompt: question }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: question, context: topCoins }),
       });
+
       const data = await res.json();
       if (data.error) {
-        setError(data.message || 'API error');
-        setAnswer('');
+        setError(data.message || 'An error occurred.');
       } else {
         setAnswer(data.answer);
       }
-    } catch {
-      setError('Network error');
-      setAnswer('');
+    } catch (err) {
+      setError('Failed to connect to the server.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 bg-gray-100 dark:bg-gray-900 rounded-xl shadow p-4">
-      <h2 className="font-bold text-lg mb-2">Chat with AI</h2>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder="Ask anything about crypto, markets, or tech..."
-          className="flex-1 border p-2 rounded dark:bg-black dark:border-gray-600"
-          value={question}
-          onChange={e => setQuestion(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && askAI()}
-          disabled={loading}
-        />
-        <button
-          onClick={askAI}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          disabled={loading}
-        >
-          Ask
-        </button>
-      </div>
-      {error && <div className="text-red-500 mt-2">{error}</div>}
-      {!error && !answer && !loading && <div className="mt-2 text-gray-500">No headlines found.</div>}
-      {loading && <div className="text-blue-500 mt-2">Thinking...</div>}
+    <div className="max-w-2xl mx-auto mt-12 p-4 border rounded-xl bg-gray-100 dark:bg-gray-800">
+      <h2 className="text-xl font-bold mb-4 text-center">Smart AI Assistant</h2>
+      <textarea
+        className="w-full p-2 border rounded dark:bg-gray-900 dark:border-gray-700 disabled:opacity-50"
+        rows={3}
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+        placeholder={isContextReady ? "Ask about the top performers..." : "Loading context data..."}
+        // --- JAVÍTÁS: Letiltjuk, amíg nincs adat ---
+        disabled={loading || !isContextReady}
+      />
+      <button
+        onClick={handleAsk}
+        // --- JAVÍTÁS: Letiltjuk, amíg nincs adat ---
+        disabled={loading || !question.trim() || !isContextReady}
+        className="w-full mt-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:opacity-50"
+      >
+        {loading ? 'Thinking...' : 'Ask AI'}
+      </button>
 
-      {/* Válasz renderelése */}
-      {!loading && answer && (
-        <ul className="mt-3 space-y-2">
-          {Array.isArray(answer)
-            ? answer.map((item, i) => (
-                <li key={i}>
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    {item.title}
-                  </a>
-                  {item.snippet && (
-                    <p className="text-sm text-gray-500">{item.snippet}</p>
-                  )}
-                </li>
-              ))
-            : answer
-                .toString()
-                .split('\n')
-                .map((line, i) => <li key={i}>{line}</li>)}
-        </ul>
+      {loading && <div className="mt-4 text-center text-blue-500">Analyzing...</div>}
+      {error && <div className="mt-4 text-center text-red-500">{error}</div>}
+      {answer && (
+        <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded">
+          <p className="whitespace-pre-wrap">{answer}</p>
+        </div>
       )}
     </div>
   );

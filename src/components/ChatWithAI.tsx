@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 
+// Definiáljuk a Coin típusát, hogy a komponens tudja, mit kap
 type Coin = {
   name: string;
   symbol: string;
@@ -18,11 +19,9 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // --- JAVÍTÁS: Ellenőrizzük, hogy van-e adat ---
   const isContextReady = topCoins && topCoins.length > 0;
 
   const handleAsk = async () => {
-    // Dupla ellenőrzés, bár a gomb le lesz tiltva
     if (!question.trim() || !isContextReady) return;
 
     setLoading(true);
@@ -42,7 +41,7 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
       } else {
         setAnswer(data.answer);
       }
-    } catch (err) {
+    } catch { // --- JAVÍTÁS ITT: a '(err)' el lett távolítva ---
       setError('Failed to connect to the server.');
     } finally {
       setLoading(false);
@@ -58,12 +57,10 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         placeholder={isContextReady ? "Ask about the top performers..." : "Loading context data..."}
-        // --- JAVÍTÁS: Letiltjuk, amíg nincs adat ---
         disabled={loading || !isContextReady}
       />
       <button
         onClick={handleAsk}
-        // --- JAVÍTÁS: Letiltjuk, amíg nincs adat ---
         disabled={loading || !question.trim() || !isContextReady}
         className="w-full mt-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:opacity-50"
       >

@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 
-// Definiáljuk a Coin típusát, hogy a komponens tudja, mit kap
 type Coin = {
   name: string;
   symbol: string;

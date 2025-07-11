@@ -1,12 +1,10 @@
-export default {
-  darkMode: 'class',
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  // ... a többi beállítás
+  plugins: [
+    require('@tailwindcss/typography'), // EZT ADD HOZZÁ
   ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
 }
+export default config

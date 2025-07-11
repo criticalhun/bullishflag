@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import ReactMarkdown from 'react-markdown'; // ÚJ IMPORT
+import remarkGfm from 'remark-gfm'; // ÚJ IMPORT a táblázatokhoz
 
 type Coin = {
   name: string;
@@ -20,6 +22,7 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
   const [error, setError] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
+  // ... (a handleAsk és handleCopy függvények változatlanok)
   const isContextReady = topCoins && topCoins.length > 0;
 
   const handleAsk = async () => {
@@ -55,9 +58,11 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
     }
   };
 
+
   return (
     <div className="max-w-2xl mx-auto mt-12 p-4 border rounded-xl bg-gray-100 dark:bg-gray-800">
       <h2 className="text-xl font-bold mb-4 text-center">Smart AI Assistant</h2>
+      {/* ... (a textarea és a button változatlan) ... */}
       <textarea
         className="w-full p-2 border rounded dark:bg-gray-900 dark:border-gray-700 disabled:opacity-50"
         rows={3}
@@ -77,21 +82,17 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
       {loading && <div className="mt-4 text-center text-blue-500">Analyzing...</div>}
       {error && <div className="mt-4 text-center text-red-500">{error}</div>}
       
-      {/* --- JAVÍTÁS ITT: A válasz doboza Flexbox-szal --- */}
       {answer && (
-        <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded">
-          <div className="flex justify-between items-start gap-4">
-            {/* 1. oszlop: A szöveg, ami kitölti a teret */}
-            <p className="whitespace-pre-wrap flex-grow">{answer}</p>
-            
-            {/* 2. oszlop: A gomb, fix mérettel */}
-            <button
-              onClick={handleCopy}
-              className="p-1.5 text-gray-400 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-              title="Copy to clipboard"
-            >
-              {isCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-            </button>
+        <div className="relative mt-4 p-4 bg-white dark:bg-gray-900 rounded">
+          <button onClick={handleCopy} className="absolute top-2 right-2 p-1.5 text-gray-400 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Copy to clipboard">
+            {isCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+          </button>
+          
+          {/* --- JAVÍTÁS ITT: ReactMarkdown komponens használata --- */}
+          <div className="prose dark:prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {answer}
+            </ReactMarkdown>
           </div>
         </div>
       )}

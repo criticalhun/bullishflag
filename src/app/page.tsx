@@ -96,14 +96,16 @@ export default function Home() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center w-full">
-          BullishFlag.xyz – Top Performing Coins
-        </h1>
-        <div className="absolute right-4 top-4">
-          <ThemeToggle />
-        </div>
+      
+      {/* --- JAVÍTÁS ITT: A ThemeToggle és a cím új elrendezése --- */}
+      <div className="w-full flex justify-end mb-4">
+        <ThemeToggle />
       </div>
+
+      <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8">
+        BullishFlag.xyz – Top Performing Coins
+      </h1>
+
       <div className="flex flex-wrap gap-4 justify-center mb-6">
         <div className="text-sm flex items-center">
           <span className="mr-2">Limit:</span>
@@ -186,7 +188,6 @@ export default function Home() {
         </div>
       )}
       
-      {/* --- MÓDOSÍTÁS ITT --- */}
       <ChatWithAI topCoins={topCoins} />
       
     </main>

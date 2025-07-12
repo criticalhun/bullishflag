@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import LoadingSpinner from '@/components/ui/LoadingSpinner'; // ÚJ IMPORT
 
 type Coin = {
   name: string;
@@ -75,21 +76,25 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
         {loading ? 'Thinking...' : 'Ask AI'}
       </button>
 
-      {loading && <div className="mt-4 text-center text-blue-500">Analyzing...</div>}
+      {/* --- JAVÍTÁS ITT: A loading állapot kijelzése spinnerrel --- */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center mt-4 py-4">
+          <LoadingSpinner />
+          <p className="text-sm text-gray-400 mt-2">BullishBot is analyzing...</p>
+        </div>
+      )}
+
       {error && <div className="mt-4 text-center text-red-500">{error}</div>}
       
-      {answer && (
-        // --- JAVÍTÁS ITT: A válasz dobozának elrendezése Flexbox-szal ---
+      {/* Csak akkor jelenítjük meg a választ, ha nem tölt éppen */}
+      {!loading && answer && (
         <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded">
           <div className="flex justify-between items-start gap-4">
-            {/* 1. oszlop: A szöveg, ami kitölti a rendelkezésre álló helyet */}
             <div className="prose dark:prose-invert max-w-none flex-grow">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answer}
               </ReactMarkdown>
             </div>
-            
-            {/* 2. oszlop: A gomb, ami nem zsugorodik */}
             <button
               onClick={handleCopy}
               className="p-1.5 text-gray-400 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex-shrink-0"

@@ -1,10 +1,11 @@
+// src/components/ChatWithAI.tsx
 'use client';
 
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import LoadingSpinner from '@/components/ui/LoadingSpinner'; // ÚJ IMPORT
+import LoadingSpinner from '@/components/ui/LoadingSpinner'; // Visszaállítottuk az importot
 
 type Coin = {
   name: string;
@@ -76,7 +77,7 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
         {loading ? 'Thinking...' : 'Ask AI'}
       </button>
 
-      {/* --- JAVÍTÁS ITT: A loading állapot kijelzése spinnerrel --- */}
+      {/* A loading állapot kijelzése az új SVG spinnerrel */}
       {loading && (
         <div className="flex flex-col items-center justify-center mt-4 py-4">
           <LoadingSpinner />
@@ -86,7 +87,6 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
 
       {error && <div className="mt-4 text-center text-red-500">{error}</div>}
       
-      {/* Csak akkor jelenítjük meg a választ, ha nem tölt éppen */}
       {!loading && answer && (
         <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded">
           <div className="flex justify-between items-start gap-4">

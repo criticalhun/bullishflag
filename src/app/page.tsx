@@ -12,6 +12,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
+import LoginButton from '@/components/LoginButton';
 
 type Coin = {
   id: number;
@@ -97,8 +98,8 @@ export default function Home() {
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       
-      {/* --- JAVÍTÁS ITT: A ThemeToggle és a cím új elrendezése --- */}
-      <div className="w-full flex justify-end mb-4">
+      <div className="w-full flex justify-end items-center gap-4 mb-4">
+        <LoginButton />
         <ThemeToggle />
       </div>
 
@@ -142,7 +143,9 @@ export default function Home() {
           </Select>
         </div>
       </div>
+      
       <PerformanceChart data={chartData} rangeLabel={time} />
+      
       {loading ? (
         <p className="text-blue-500 text-center">Loading data...</p>
       ) : (

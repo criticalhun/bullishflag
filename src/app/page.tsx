@@ -180,7 +180,14 @@ export default function Home() {
           <table className="min-w-full text-sm sm:text-base border-collapse">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800 text-left">
-                {session && <th className="p-2 w-12">Fav</th>}
+                {/* --- JAVÍTÁS ITT: A "Fav" fejléc most már egy link --- */}
+                {session && (
+                  <th className="p-2 w-12">
+                    <Link href="/favorites" className="hover:underline">
+                      Fav
+                    </Link>
+                  </th>
+                )}
                 <th className="p-2">#</th>
                 <th className="p-2">Coin</th>
                 <th className="p-2">Price (USD)</th>
@@ -195,7 +202,6 @@ export default function Home() {
                     {session && (
                       <td className="p-2 text-center">
                         <button onClick={() => handleFavoriteToggle(coin.id, coin.symbol)}>
-                          {/* --- JAVÍTÁS ITT: A 'fill' prop használata a színezéshez --- */}
                           <Star
                             className={`cursor-pointer transition-colors ${
                               isFavorite ? "text-yellow-400" : "text-gray-500 hover:text-yellow-300"

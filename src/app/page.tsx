@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { Star } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import PerformanceChart from '@/components/PerformanceChart';
 import {
@@ -38,44 +40,70 @@ const timeOptions = [
 
 const limitOptions = [100, 500, 1000, 2000, 5000] as const;
 
-
 export default function Home() {
+  const { data: session } = useSession();
   const [coins, setCoins] = useState<Coin[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [limit, setLimit] = useState<number>(100);
   const [time, setTime] = useState<typeof timeOptions[number]['value']>('24h');
   const [loading, setLoading] = useState(false);
 
   const fetchCoins = useCallback((showLoading: boolean) => {
-    if (showLoading) {
-      setLoading(true);
-    }
+    if (showLoading) setLoading(true);
     fetch(`/api/cryptos?limit=${limit}&time=${time}`)
       .then((res) => res.json())
-      .then((data) => {
-        setCoins(data.data || []);
-      })
+      .then((data) => setCoins(data.data || []))
       .finally(() => {
-        if (showLoading) {
-          setLoading(false);
-        }
+        if (showLoading) setLoading(false);
       });
   }, [limit, time]);
-
 
   useEffect(() => {
     fetchCoins(true);
   }, [fetchCoins]);
 
-
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log('Fetching new data in background...');
       fetchCoins(false);
-    }, 60000); 
-
+    }, 60000);
     return () => clearInterval(intervalId);
   }, [fetchCoins]);
 
+  useEffect(() => {
+    if (session?.user) {
+      fetch('/api/favorites')
+        .then(res => res.json())
+        .then((favs) => {
+          if (Array.isArray(favs)) {
+            setFavorites(favs);
+          } else {
+            setFavorites([]);
+          }
+        })
+        .catch(console.error);
+    } else {
+      setFavorites([]);
+    }
+  }, [session]);
+
+  const handleFavoriteToggle = async (coinId: number, symbol: string) => {
+    if (!session) {
+      alert("Please sign in to add favorites.");
+      return;
+    }
+    const coinIdStr = String(coinId);
+
+    const newFavorites = favorites.includes(coinIdStr)
+      ? favorites.filter(id => id !== coinIdStr)
+      : [...favorites, coinIdStr];
+    setFavorites(newFavorites);
+
+    await fetch('/api/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coinId: coinIdStr, symbol }),
+    });
+  };
 
   const getPercentageChange = (coin: Coin) => {
     switch (time) {
@@ -97,7 +125,6 @@ export default function Home() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      
       <div className="w-full flex justify-end items-center gap-4 mb-4">
         <LoginButton />
         <ThemeToggle />
@@ -143,9 +170,9 @@ export default function Home() {
           </Select>
         </div>
       </div>
-      
+
       <PerformanceChart data={chartData} rangeLabel={time} />
-      
+
       {loading ? (
         <p className="text-blue-500 text-center">Loading data...</p>
       ) : (
@@ -153,6 +180,7 @@ export default function Home() {
           <table className="min-w-full text-sm sm:text-base border-collapse">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                {session && <th className="p-2 w-12">Fav</th>}
                 <th className="p-2">#</th>
                 <th className="p-2">Coin</th>
                 <th className="p-2">Price (USD)</th>
@@ -160,39 +188,45 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {topCoins.map((coin, i) => (
-                <tr
-                  key={coin.id}
-                  className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="p-2">{i + 1}</td>
-                  <td className="p-2 font-semibold">
-                    <Link
-                      href={`/coins/${coin.symbol.toLowerCase()}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {coin.name} ({coin.symbol})
-                    </Link>
-                  </td>
-                  <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
-                  <td
-                    className={`p-2 ${
-                      getPercentageChange(coin)! >= 0
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }`}
-                  >
-                    {getPercentageChange(coin)?.toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
+              {topCoins.map((coin, i) => {
+                const isFavorite = Array.isArray(favorites) && favorites.includes(String(coin.id));
+                return (
+                  <tr key={coin.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    {session && (
+                      <td className="p-2 text-center">
+                        <button onClick={() => handleFavoriteToggle(coin.id, coin.symbol)}>
+                          {/* --- JAVÍTÁS ITT: A 'fill' prop használata a színezéshez --- */}
+                          <Star
+                            className={`cursor-pointer transition-colors ${
+                              isFavorite ? "text-yellow-400" : "text-gray-500 hover:text-yellow-300"
+                            }`}
+                            fill={isFavorite ? "currentColor" : "none"}
+                          />
+                        </button>
+                      </td>
+                    )}
+                    <td className="p-2">{i + 1}</td>
+                    <td className="p-2 font-semibold">
+                      <Link
+                        href={`/coins/${coin.symbol.toLowerCase()}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {coin.name} ({coin.symbol})
+                      </Link>
+                    </td>
+                    <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
+                    <td className={`p-2 ${getPercentageChange(coin)! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {getPercentageChange(coin)?.toFixed(2)}%
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
-      
+
       <ChatWithAI topCoins={topCoins} />
-      
     </main>
   );
 }

@@ -49,3 +49,5 @@ dokkumentaciok/
 *.odt
 nano.*
 
+
+/src/generated/prisma

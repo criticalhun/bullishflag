@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // JAVÍTÁS ITT: A te Vercel beállításaid alapján a létező 'POSTGRES_URL'-t használjuk
+  url      = env("POSTGRES_URL") 
+}
+
+// --- Modellek a NextAuth-hoz és a saját funkcióinkhoz ---
+
+// NextAuth-hoz szükséges modellek
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  favoriteCoins FavoriteCoin[] // Felhasználó kedvenc coinjai
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// A mi saját táblánk a kedvenc coinokhoz
+model FavoriteCoin {
+  id        String   @id @default(cuid())
+  userId    String
+  coinId    String   // pl. "bitcoin" vagy a CMC ID-ja
+  symbol    String   // pl. "BTC"
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coinId])
+}

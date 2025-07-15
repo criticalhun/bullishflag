@@ -12,22 +12,5 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
   ],
-  callbacks: {
-    session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-      }
-      return session;
-    },
-    // --- ÚJ, DIAGNOSZTIKAI RÉSZ ---
-    async redirect({ url, baseUrl }) {
-      // Kiírjuk a szerveroldali logba, hogy mit lát a NextAuth
-      console.log("[next-auth][debug] REDIRECT CALLBACK TRIGGERED");
-      console.log(`[next-auth][debug] URL from provider: ${url}`);
-      console.log(`[next-auth][debug] Base URL of site: ${baseUrl}`);
-
-      // Ez a NextAuth alapértelmezett viselkedése, ezt nem változtatjuk
-      return url.startsWith(baseUrl) ? url : baseUrl;
-    },
-  },
+  // A callbacks részt ideiglenesen kivettük a hibakereséshez
 };

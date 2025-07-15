@@ -12,5 +12,14 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
   ],
-  // A callbacks részt ideiglenesen kivettük a hibakereséshez
+  // --- JAVÍTÁS ITT: A callbacks blokk hozzáadása ---
+  callbacks: {
+    // Ez a funkció biztosítja, hogy a felhasználó ID-ja bekerüljön a session objektumba
+    session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
+  },
 };

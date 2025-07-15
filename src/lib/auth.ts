@@ -19,5 +19,15 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    // --- ÚJ, DIAGNOSZTIKAI RÉSZ ---
+    async redirect({ url, baseUrl }) {
+      // Kiírjuk a szerveroldali logba, hogy mit lát a NextAuth
+      console.log("[next-auth][debug] REDIRECT CALLBACK TRIGGERED");
+      console.log(`[next-auth][debug] URL from provider: ${url}`);
+      console.log(`[next-auth][debug] Base URL of site: ${baseUrl}`);
+
+      // Ez a NextAuth alapértelmezett viselkedése, ezt nem változtatjuk
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
   },
 };

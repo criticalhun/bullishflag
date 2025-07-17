@@ -7,13 +7,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // JAVÍTÁS ITT: A te Vercel beállításaid alapján a létező 'POSTGRES_URL'-t használjuk
-  url      = env("POSTGRES_URL") 
+  url      = env("POSTGRES_URL")
 }
 
-// --- Modellek a NextAuth-hoz és a saját funkcióinkhoz ---
-
-// NextAuth-hoz szükséges modellek
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -27,8 +23,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -47,9 +42,10 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  password      String?   // <<< EZ AZ ÚJ MEZŐ
   accounts      Account[]
   sessions      Session[]
-  favoriteCoins FavoriteCoin[] // Felhasználó kedvenc coinjai
+  favoriteCoins FavoriteCoin[]
 }
 
 model VerificationToken {
@@ -60,12 +56,11 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// A mi saját táblánk a kedvenc coinokhoz
 model FavoriteCoin {
   id        String   @id @default(cuid())
   userId    String
-  coinId    String   // pl. "bitcoin" vagy a CMC ID-ja
-  symbol    String   // pl. "BTC"
+  coinId    String
+  symbol    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, coinId])

@@ -9,12 +9,10 @@ import bcrypt from "bcrypt";
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // Meglévő GitHub bejelentkezés
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? "",
       clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
-    // ÚJ: Email/Jelszó bejelentkezés
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -22,43 +20,56 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("[Authorize] Starting credentials check for:", credentials?.email);
+
         if (!credentials?.email || !credentials.password) {
+          console.log("[Authorize] Missing email or password.");
           return null;
         }
 
-        // 1. Keressük a felhasználót az email címe alapján
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
 
-        if (!user || !user.password) {
+        if (!user) {
+          console.log("[Authorize] User not found in database.");
           return null;
         }
 
-        // 2. Ellenőrizzük a jelszót a bcrypt segítségével
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
+        if (!user.password) {
+          console.log("[Authorize] User found, but has no password set (likely a GitHub user).");
           return null;
         }
 
-        // Ha minden rendben, visszaadjuk a felhasználót
-        return user;
+        try {
+          console.log("[Authorize] Comparing passwords...");
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
+            console.log("[Authorize] Password comparison failed.");
+            return null;
+          }
+
+          console.log("[Authorize] Password is valid. Authorizing user.");
+          return user;
+
+        } catch (error) {
+          console.error("[Authorize] Error during bcrypt.compare:", error);
+          return null; // Hiba esetén soha ne engedjük be a felhasználót
+        }
       }
     })
   ],
   session: {
-    strategy: "jwt", // A Credentials provider-hez JWT stratégia szükséges
+    strategy: "jwt",
   },
   callbacks: {
-    // A JWT tokenbe beletesszük a felhasználó ID-ját
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    // A session objektumba is beletesszük a felhasználó ID-ját a tokenből
     session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
@@ -66,7 +77,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // Megadjuk az egyedi bejelentkezési oldalunk útvonalát
   pages: {
     signIn: '/signin',
   },

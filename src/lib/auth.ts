@@ -20,10 +20,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log("[Authorize] Starting credentials check for:", credentials?.email);
-
         if (!credentials?.email || !credentials.password) {
-          console.log("[Authorize] Missing email or password.");
           return null;
         }
 
@@ -31,35 +28,21 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         });
 
-        if (!user) {
-          console.log("[Authorize] User not found in database.");
+        if (!user || !user.password) {
           return null;
         }
 
-        if (!user.password) {
-          console.log("[Authorize] User found, but has no password set (likely a GitHub user).");
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
           return null;
         }
 
-        try {
-          console.log("[Authorize] Comparing passwords...");
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-          if (!isPasswordValid) {
-            console.log("[Authorize] Password comparison failed.");
-            return null;
-          }
-
-          console.log("[Authorize] Password is valid. Authorizing user.");
-          return user;
-
-        } catch (error) {
-          console.error("[Authorize] Error during bcrypt.compare:", error);
-          return null; // Hiba esetén soha ne engedjük be a felhasználót
-        }
+        return user;
       }
     })
   ],
+  // A session stratégia és a callbacks helyes beállítása kulcsfontosságú
   session: {
     strategy: "jwt",
   },
@@ -80,4 +63,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/signin',
   },
+  // A debug mód segít a Vercel logokban, ha továbbra is hiba van
+  debug: process.env.NODE_ENV === 'development',
 };

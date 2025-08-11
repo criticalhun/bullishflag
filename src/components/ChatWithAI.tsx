@@ -1,11 +1,10 @@
-// src/components/ChatWithAI.tsx
 'use client';
 
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import LoadingSpinner from '@/components/ui/LoadingSpinner'; // Visszaállítottuk az importot
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 type Coin = {
   name: string;
@@ -59,10 +58,11 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-12 p-4 border rounded-xl bg-gray-100 dark:bg-gray-800">
+    <div className="max-w-2xl mx-auto mt-12 p-4 border rounded-xl bg-gray-100 dark:bg-gray-800/50">
       <h2 className="text-xl font-bold mb-4 text-center">Smart AI Assistant</h2>
       <textarea
-        className="w-full p-2 border rounded dark:bg-gray-900 dark:border-gray-700 disabled:opacity-50"
+        // JAVÍTÁS ITT: Fókusz stílus hozzáadva
+        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
         rows={3}
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
@@ -77,7 +77,6 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
         {loading ? 'Thinking...' : 'Ask AI'}
       </button>
 
-      {/* A loading állapot kijelzése az új SVG spinnerrel */}
       {loading && (
         <div className="flex flex-col items-center justify-center mt-4 py-4">
           <LoadingSpinner />

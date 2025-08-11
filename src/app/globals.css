@@ -4,46 +4,46 @@
 
 @layer base {
   :root {
-    --background: 255 255 255;
-    --foreground: 10 10 10;
-    --card: 255 255 255;
-    --card-foreground: 10 10 10;
-    --popover: 255 255 255;
-    --popover-foreground: 10 10 10;
-    --primary: 25 25 25;
-    --primary-foreground: 250 250 250;
-    --secondary: 245 245 245;
-    --secondary-foreground: 25 25 25;
-    --muted: 245 245 245;
-    --muted-foreground: 100 100 100;
-    --accent: 245 245 245;
-    --accent-foreground: 25 25 25;
-    --destructive: 220 40 40;
-    --border: 229 231 235;
-    --input: 229 231 235;
-    --ring: 25 25 25;
-    --radius: 0.625rem;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 10 10 10;
-    --foreground: 250 250 250;
-    --card: 25 25 25;
-    --card-foreground: 250 250 250;
-    --popover: 25 25 25;
-    --popover-foreground: 250 250 250;
-    --primary: 250 250 250;
-    --primary-foreground: 25 25 25;
-    --secondary: 40 40 40;
-    --secondary-foreground: 250 250 250;
-    --muted: 40 40 40;
-    --muted-foreground: 160 160 160;
-    --accent: 40 40 40;
-    --accent-foreground: 250 250 250;
-    --destructive: 255 80 80;
-    --border: 40 40 40;
-    --input: 40 40 40;
-    --ring: 250 250 250;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -55,9 +55,15 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /* --- JAVÍTÁS ITT: Alapértelmezett fókusz keret felülírása --- */
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+  }
 }
 
-/* Fallback animations in case Tailwind's JIT compiler misses them */
+/* Animációk */
 @layer utilities {
   @keyframes spin {
     from {
@@ -82,7 +88,6 @@
     animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
 
-  /* --- NEW: Animated gradient for the main headline --- */
   @keyframes gradient {
     to {
       background-position: 200% center;

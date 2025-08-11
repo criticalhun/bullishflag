@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
 import LoginButton from '@/components/LoginButton';
-import DashboardSkeleton from '@/components/DashboardSkeleton'; // ÚJ IMPORT
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 type Coin = {
   id: number;
@@ -48,7 +48,7 @@ export default function Home() {
   const [limit, setLimit] = useState<number>(100);
   const [inputLimit, setInputLimit] = useState<number>(100);
   const [time, setTime] = useState<typeof timeOptions[number]['value']>('24h');
-  const [loading, setLoading] = useState(true); // Alapértelmezetten true, hogy a skeleton megjelenjen
+  const [loading, setLoading] = useState(true);
 
   const fetchCoins = useCallback((showLoading: boolean) => {
     if (showLoading) setLoading(true);
@@ -181,7 +181,8 @@ export default function Home() {
                   setLimit(inputLimit);
                 }
               }}
-              className="w-24 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 text-center"
+              // JAVÍTÁS ITT: Fókusz stílus hozzáadva
+              className="w-24 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 text-center focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
               placeholder="e.g., 250"
             />
             <button
@@ -197,7 +198,8 @@ export default function Home() {
               value={time}
               onValueChange={(val) => setTime(val as typeof time)}
             >
-              <SelectTrigger className="w-36">
+              {/* JAVÍTÁS ITT: Fókusz stílus hozzáadva */}
+              <SelectTrigger className="w-36 focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500">
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>

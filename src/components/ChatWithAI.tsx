@@ -58,10 +58,10 @@ export default function ChatWithAI({ topCoins }: ChatWithAIProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-12 p-4 border rounded-xl bg-gray-100 dark:bg-gray-800/50">
+    // JAVÍTÁS ITT: A stílus most már megegyezik a többi kártyáéval
+    <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md p-4 max-w-2xl mx-auto mt-8">
       <h2 className="text-xl font-bold mb-4 text-center">Smart AI Assistant</h2>
       <textarea
-        // JAVÍTÁS ITT: Fókusz stílus hozzáadva
         className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
         rows={3}
         value={question}

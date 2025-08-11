@@ -1,11 +1,18 @@
 // src/app/imprint/page.tsx
+import Link from 'next/link';
+
 export default function ImprintPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <div className="mb-8">
+        <Link href="/" className="text-blue-500 hover:underline">
+          &larr; Back to Main Page
+        </Link>
+      </div>
       <div className="prose dark:prose-invert">
         <h1>Imprint</h1>
         <p>Information provided according to Sec. 5 German Telemedia Act (TMG):</p>
-
+        
         <h2>Website Operator (Service Provider):</h2>
         <ul>
           <li><strong>Name:</strong> Laszlo Szecsei</li>

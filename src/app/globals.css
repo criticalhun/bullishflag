@@ -81,4 +81,14 @@
   .animate-ping {
     animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
+
+  /* --- NEW: Animated gradient for the main headline --- */
+  @keyframes gradient {
+    to {
+      background-position: 200% center;
+    }
+  }
+  .animate-gradient {
+    animation: gradient 3s linear infinite;
+  }
 }

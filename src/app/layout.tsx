@@ -2,8 +2,9 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import AuthProvider from '@/components/AuthProvider'
-import Footer from '@/components/Footer' // ÚJ
-import CookieBanner from '@/components/CookieBanner' // ÚJ
+import Footer from '@/components/Footer'
+import CookieBanner from '@/components/CookieBanner'
+import { Toaster } from '@/components/ui/sonner' // ÚJ IMPORT
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <Footer />
           <CookieBanner />
+          <Toaster /> {/* ÚJ KOMPONENS */}
         </AuthProvider>
       </body>
     </html>

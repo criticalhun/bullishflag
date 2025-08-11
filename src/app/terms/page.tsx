@@ -1,7 +1,14 @@
 // src/app/terms/page.tsx
+import Link from 'next/link';
+
 export default function TermsOfUsePage() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <div className="mb-8">
+        <Link href="/" className="text-blue-500 hover:underline">
+          &larr; Back to Main Page
+        </Link>
+      </div>
       <div className="prose dark:prose-invert">
         <h1>Terms of Use</h1>
         <p>Last updated: July 16, 2024</p>

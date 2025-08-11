@@ -4,235 +4,289 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import ThemeToggle from '@/components/ThemeToggle';
 import PerformanceChart from '@/components/PerformanceChart';
 import {
-Select,
-SelectTrigger,
-SelectValue,
-SelectContent,
-SelectItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
 } from '@/components/ui/select';
 import ChatWithAI from '@/components/ChatWithAI';
 import LoginButton from '@/components/LoginButton';
+import DashboardSkeleton from '@/components/DashboardSkeleton'; // ÚJ IMPORT
 
 type Coin = {
-id: number;
-name: string;
-symbol: string;
-quote: {
-USD: {
-price: number;
-percent_change_24h: number;
-percent_change_7d?: number;
-percent_change_30d?: number;
-percent_change_90d?: number;
-};
-};
+  id: number;
+  name: string;
+  symbol: string;
+  quote: {
+    USD: {
+      price: number;
+      percent_change_24h: number;
+      percent_change_7d?: number;
+      percent_change_30d?: number;
+      percent_change_90d?: number;
+    };
+  };
 };
 
 const timeOptions = [
-{ label: '24 Hours', value: '24h' },
-{ label: '7 Days', value: '7d' },
-{ label: '30 Days', value: '30d' },
-{ label: '90 Days', value: '90d' },
+  { label: '24 Hours', value: '24h' },
+  { label: '7 Days', value: '7d' },
+  { label: '30 Days', value: '30d' },
+  { label: '90 Days', value: '90d' },
 ] as const;
 
-const limitOptions = [100, 500, 1000, 2000, 5000] as const;
-
 export default function Home() {
-const { data: session } = useSession();
-const [coins, setCoins] = useState<Coin[]>([]);
-const [favorites, setFavorites] = useState<string[]>([]);
-const [limit, setLimit] = useState<number>(100);
-const [time, setTime] = useState<typeof timeOptions[number]['value']>('24h');
-const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
+  const [coins, setCoins] = useState<Coin[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [limit, setLimit] = useState<number>(100);
+  const [inputLimit, setInputLimit] = useState<number>(100);
+  const [time, setTime] = useState<typeof timeOptions[number]['value']>('24h');
+  const [loading, setLoading] = useState(true); // Alapértelmezetten true, hogy a skeleton megjelenjen
 
-const fetchCoins = useCallback((showLoading: boolean) => {
-if (showLoading) setLoading(true);
-fetch(`/api/cryptos?limit=${limit}&time=${time}`)
-.then((res) => res.json())
-.then((data) => setCoins(data.data || []))
-.finally(() => {
-if (showLoading) setLoading(false);
-});
-}, [limit, time]);
+  const fetchCoins = useCallback((showLoading: boolean) => {
+    if (showLoading) setLoading(true);
+    fetch(`/api/cryptos?limit=${limit}&time=${time}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCoins(data.data || []);
+      })
+      .finally(() => {
+        if (showLoading) setLoading(false);
+      });
+  }, [limit, time]);
 
-useEffect(() => {
-fetchCoins(true);
-}, [fetchCoins]);
+  useEffect(() => {
+    fetchCoins(true);
+  }, [fetchCoins]);
 
-useEffect(() => {
-const intervalId = setInterval(() => {
-fetchCoins(false);
-}, 60000);
-return () => clearInterval(intervalId);
-}, [fetchCoins]);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchCoins(false);
+    }, 60000);
+    return () => clearInterval(intervalId);
+  }, [fetchCoins]);
 
-useEffect(() => {
-if (session?.user) {
-fetch('/api/favorites')
-.then(res => res.json())
-.then((favs) => {
-if (Array.isArray(favs)) {
-setFavorites(favs);
-} else {
-setFavorites([]);
-}
-})
-.catch(console.error);
-} else {
-setFavorites([]);
-}
-}, [session]);
+  useEffect(() => {
+    if (session?.user) {
+      fetch('/api/favorites')
+        .then(res => res.json())
+        .then((favs) => {
+          if (Array.isArray(favs)) {
+            setFavorites(favs);
+          } else {
+            setFavorites([]);
+          }
+        })
+        .catch(console.error);
+    } else {
+      setFavorites([]);
+    }
+  }, [session]);
 
-const handleFavoriteToggle = async (coinId: number, symbol: string) => {
-if (!session) {
-alert("Please sign in to add favorites.");
-return;
-}
-const coinIdStr = String(coinId);
+  const handleFavoriteToggle = async (coinId: number, symbol: string) => {
+    if (!session) {
+      toast.error("Please sign in to add favorites.");
+      return;
+    }
+    const coinIdStr = String(coinId);
 
-const newFavorites = favorites.includes(coinIdStr)
-? favorites.filter(id => id !== coinIdStr)
-: [...favorites, coinIdStr];
-setFavorites(newFavorites);
+    const isCurrentlyFavorite = favorites.includes(coinIdStr);
+    const newFavorites = isCurrentlyFavorite
+      ? favorites.filter(id => id !== coinIdStr)
+      : [...favorites, coinIdStr];
+    setFavorites(newFavorites);
 
-await fetch('/api/favorites', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ coinId: coinIdStr, symbol }),
-});
-};
+    if (isCurrentlyFavorite) {
+      toast.success(`${symbol} has been removed from your favorites.`);
+    } else {
+      toast.success(`${symbol} has been added to your favorites!`);
+    }
 
-const getPercentageChange = (coin: Coin) => {
-switch (time) {
-case '7d': return coin.quote.USD.percent_change_7d;
-case '30d': return coin.quote.USD.percent_change_30d;
-case '90d': return coin.quote.USD.percent_change_90d;
-default: return coin.quote.USD.percent_change_24h;
-}
-};
+    await fetch('/api/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coinId: coinIdStr, symbol }),
+    });
+  };
 
-const topCoins = coins
-.sort((a, b) => (getPercentageChange(b) ?? 0) - (getPercentageChange(a) ?? 0))
-.slice(0, 10);
+  const getPercentageChange = (coin: Coin) => {
+    switch (time) {
+      case '7d': return coin.quote.USD.percent_change_7d;
+      case '30d': return coin.quote.USD.percent_change_30d;
+      case '90d': return coin.quote.USD.percent_change_90d;
+      default: return coin.quote.USD.percent_change_24h;
+    }
+  };
 
-const chartData = topCoins.map((coin) => ({
-name: coin.symbol,
-value: getPercentageChange(coin) ?? 0,
-}));
+  const topCoins = coins
+    .sort((a, b) => (getPercentageChange(b) ?? 0) - (getPercentageChange(a) ?? 0))
+    .slice(0, 10);
 
-return (
-<main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-<div className="w-full flex justify-end items-center gap-4 mb-4">
-<LoginButton />
-<ThemeToggle />
-</div>
+  const chartData = topCoins.map((coin) => ({
+    name: coin.symbol,
+    value: getPercentageChange(coin) ?? 0,
+  }));
 
-<h1 className="text-3xl sm:text-4xl font-bold text-center mb-8">
-BullishFlag.xyz – Top Performing Coins
-</h1>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
 
-<div className="flex flex-wrap gap-4 justify-center mb-6">
-<div className="text-sm flex items-center">
-<span className="mr-2">Limit:</span>
-<Select
-value={limit.toString()}
-onValueChange={(val) => setLimit(Number(val))}
->
-<SelectTrigger className="w-32">
-<SelectValue placeholder="Select limit" />
-</SelectTrigger>
-<SelectContent>
-{limitOptions.map((n) => (
-<SelectItem key={n} value={n.toString()}>{n}</SelectItem>
-))}
-</SelectContent>
-</Select>
-</div>
-<div className="text-sm flex items-center">
-<span className="mr-2">Timeframe:</span>
-<Select
-value={time}
-onValueChange={(val) => setTime(val as typeof time)}
->
-<SelectTrigger className="w-36">
-<SelectValue placeholder="Select timeframe" />
-</SelectTrigger>
-<SelectContent>
-{timeOptions.map((opt) => (
-<SelectItem key={opt.value} value={opt.value}>
-{opt.label}
-</SelectItem>
-))}
-</SelectContent>
-</Select>
-</div>
-</div>
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+    },
+  };
 
-<PerformanceChart data={chartData} rangeLabel={time} />
+  return (
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="w-full flex justify-end items-center gap-4 mb-4">
+        <LoginButton />
+        <ThemeToggle />
+      </div>
 
-{loading ? (
-<p className="text-blue-500 text-center">Loading data...</p>
-) : (
-<div className="overflow-x-auto">
-<table className="min-w-full text-sm sm:text-base border-collapse">
-<thead>
-<tr className="bg-gray-100 dark:bg-gray-800 text-left">
-{/* --- JAVÍTÁS ITT: A "Fav" fejléc most már egy link --- */}
-{session && (
-<th className="p-2 w-12">
-<Link href="/favorites" className="hover:underline">
-Fav
-</Link>
-</th>
-)}
-<th className="p-2">#</th>
-<th className="p-2">Coin</th>
-<th className="p-2">Price (USD)</th>
-<th className="p-2">% Change ({time})</th>
-</tr>
-</thead>
-<tbody>
-{topCoins.map((coin, i) => {
-const isFavorite = Array.isArray(favorites) && favorites.includes(String(coin.id));
-return (
-<tr key={coin.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-{session && (
-<td className="p-2 text-center">
-<button onClick={() => handleFavoriteToggle(coin.id, coin.symbol)}>
-<Star
-className={`cursor-pointer transition-colors ${
-isFavorite ? "text-yellow-400" : "text-gray-500 hover:text-yellow-300"
-}`}
-fill={isFavorite ? "currentColor" : "none"}
-/>
-</button>
-</td>
-)}
-<td className="p-2">{i + 1}</td>
-<td className="p-2 font-semibold">
-<Link
-href={`/coins/${coin.symbol.toLowerCase()}`}
-className="text-blue-600 hover:underline"
->
-{coin.name} ({coin.symbol})
-</Link>
-</td>
-<td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
-<td className={`p-2 ${getPercentageChange(coin)! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-{getPercentageChange(coin)?.toFixed(2)}%
-</td>
-</tr>
-);
-})}
-</tbody>
-</table>
-</div>
-)}
+      <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8">
+        <span className="animate-gradient bg-gradient-to-r from-blue-500 via-green-400 to-yellow-500 bg-[length:200%_auto] bg-clip-text text-transparent">
+          BullishFlag.xyz
+        </span>
+        <span className="block text-xl sm:text-2xl font-medium text-gray-600 dark:text-gray-400 mt-1">
+          Top Performing Coins
+        </span>
+      </h1>
 
-<ChatWithAI topCoins={topCoins} />
-</main>
-);
+      <div className="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md mb-8">
+        <div className="flex flex-wrap gap-4 justify-center">
+          <div className="text-sm flex items-center gap-2">
+            <span className="mr-2">Limit:</span>
+            <input
+              type="number"
+              value={inputLimit}
+              onChange={(e) => setInputLimit(Number(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setLimit(inputLimit);
+                }
+              }}
+              className="w-24 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 text-center"
+              placeholder="e.g., 250"
+            />
+            <button
+              onClick={() => setLimit(inputLimit)}
+              className="px-3 py-2 bg-blue-600 text-white font-semibold rounded-md text-sm hover:bg-blue-700"
+            >
+              Go
+            </button>
+          </div>
+          <div className="text-sm flex items-center">
+            <span className="mr-2">Timeframe:</span>
+            <Select
+              value={time}
+              onValueChange={(val) => setTime(val as typeof time)}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Select timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <DashboardSkeleton />
+      ) : (
+        <>
+          <div className="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md mb-8">
+            <PerformanceChart data={chartData} rangeLabel={time} />
+          </div>
+        
+          <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-md p-4">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm sm:text-base border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    {session && (
+                      <th className="p-2 w-12 text-left">
+                        <Link href="/favorites" className="hover:underline">
+                          Fav
+                        </Link>
+                      </th>
+                    )}
+                    <th className="p-2 text-left">#</th>
+                    <th className="p-2 text-left">Coin</th>
+                    <th className="p-2 text-left">Price (USD)</th>
+                    <th className="p-2 text-left">% Change ({time})</th>
+                  </tr>
+                </thead>
+                <motion.tbody
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {topCoins.map((coin, i) => {
+                    const isFavorite = Array.isArray(favorites) && favorites.includes(String(coin.id));
+                    return (
+                      <motion.tr
+                        key={coin.id}
+                        variants={itemVariants}
+                        className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        {session && (
+                          <td className="p-2 text-center">
+                            <button onClick={() => handleFavoriteToggle(coin.id, coin.symbol)}>
+                              <Star
+                                className={`cursor-pointer transition-colors ${
+                                  isFavorite ? "text-yellow-400" : "text-gray-500 hover:text-yellow-300"
+                                }`}
+                                fill={isFavorite ? "currentColor" : "none"}
+                              />
+                            </button>
+                          </td>
+                        )}
+                        <td className="p-2">{i + 1}</td>
+                        <td className="p-2 font-semibold">
+                          <Link
+                            href={`/coins/${coin.symbol.toLowerCase()}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {coin.name} ({coin.symbol})
+                          </Link>
+                        </td>
+                        <td className="p-2">${coin.quote.USD.price.toFixed(2)}</td>
+                        <td className={`p-2 ${getPercentageChange(coin)! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {getPercentageChange(coin)?.toFixed(2)}%
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </motion.tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      <ChatWithAI topCoins={topCoins} />
+    </main>
+  );
 }

@@ -1,7 +1,14 @@
 // src/app/cookies/page.tsx
+import Link from 'next/link';
+
 export default function CookiePolicyPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <div className="mb-8">
+        <Link href="/" className="text-blue-500 hover:underline">
+          &larr; Back to Main Page
+        </Link>
+      </div>
       <div className="prose dark:prose-invert">
         <h1>Cookie Policy</h1>
         <p>This website uses cookies to ensure you get the best experience on our site. Cookies are small text files stored on your device that help the website function properly and provide us with analytics.</p>

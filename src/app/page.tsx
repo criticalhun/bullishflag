@@ -41,12 +41,14 @@ const timeOptions = [
   { label: '90 Days', value: '90d' },
 ] as const;
 
+// Visszaállítottuk a fix limit opciókat
+const limitOptions = [100, 500, 1000, 2000, 5000] as const;
+
 export default function Home() {
   const { data: session } = useSession();
   const [coins, setCoins] = useState<Coin[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [limit, setLimit] = useState<number>(100);
-  const [inputLimit, setInputLimit] = useState<number>(100);
   const [time, setTime] = useState<typeof timeOptions[number]['value']>('24h');
   const [loading, setLoading] = useState(true);
 
@@ -170,27 +172,22 @@ export default function Home() {
 
       <div className="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md mb-8">
         <div className="flex flex-wrap gap-4 justify-center">
-          <div className="text-sm flex items-center gap-2">
+          {/* --- JAVÍTÁS ITT: Visszaállítottuk a legördülő menüt --- */}
+          <div className="text-sm flex items-center">
             <span className="mr-2">Limit:</span>
-            <input
-              type="number"
-              value={inputLimit}
-              onChange={(e) => setInputLimit(Number(e.target.value))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setLimit(inputLimit);
-                }
-              }}
-              // JAVÍTÁS ITT: Fókusz stílus hozzáadva
-              className="w-24 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 text-center focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
-              placeholder="e.g., 250"
-            />
-            <button
-              onClick={() => setLimit(inputLimit)}
-              className="px-3 py-2 bg-blue-600 text-white font-semibold rounded-md text-sm hover:bg-blue-700"
+            <Select
+              value={limit.toString()}
+              onValueChange={(val) => setLimit(Number(val))}
             >
-              Go
-            </button>
+              <SelectTrigger className="w-32 focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500">
+                <SelectValue placeholder="Select limit" />
+              </SelectTrigger>
+              <SelectContent>
+                {limitOptions.map((n) => (
+                  <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="text-sm flex items-center">
             <span className="mr-2">Timeframe:</span>
@@ -198,7 +195,6 @@ export default function Home() {
               value={time}
               onValueChange={(val) => setTime(val as typeof time)}
             >
-              {/* JAVÍTÁS ITT: Fókusz stílus hozzáadva */}
               <SelectTrigger className="w-36 focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500">
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>

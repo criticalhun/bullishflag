@@ -11,7 +11,7 @@ const prisma =
   global.prisma ||
   new PrismaClient({
     // Opcionális: a logolás segít a hibakeresésben a Vercel logokban
-    log: ['query', 'info', 'warn', 'error'],
+    log: ['warn', 'error'],
   })
 
 if (process.env.NODE_ENV !== 'production') {

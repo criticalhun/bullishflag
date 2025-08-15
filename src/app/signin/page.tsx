@@ -17,14 +17,16 @@ export default function SignInPage() {
     setError('');
 
     const result = await signIn('credentials', {
-      redirect: false,
+      redirect: false, // Fontos: a hibakezeléshez false-ra kell állítani
       email,
       password,
     });
 
+    // Itt kezeljük a NextAuth-tól kapott hibát
     if (result?.error) {
       setError("Invalid email or password. Please try again.");
     } else if (result?.ok) {
+      // Sikeres bejelentkezés esetén átirányítunk a főoldalra
       router.push('/');
     }
   };
@@ -34,7 +36,8 @@ export default function SignInPage() {
       <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center">Sign In</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <p className="text-red-500 text-center">{error}</p>}
+          {/* Hibaüzenet megjelenítése */}
+          {error && <p className="text-red-500 text-center text-sm">{error}</p>}
           <div>
             <label className="block text-sm font-medium">Email</label>
             <input

@@ -7,11 +7,16 @@ import Link from "next/link";
 export default function LoginButton() {
   const { data: session } = useSession();
 
-  // Ha a felhasználó be van jelentkezve, a kijelentkezés gomb jelenik meg
+  // Ha a felhasználó be van jelentkezve
   if (session) {
     return (
       <div className="flex items-center gap-4">
-        {session.user?.name && <span className="text-sm hidden sm:block">{session.user.name}</span>}
+        {/* A felhasználó neve most már egy link a profil oldalra */}
+        {session.user?.name && (
+          <Link href="/profile" className="text-sm hidden sm:block hover:underline">
+            {session.user.name}
+          </Link>
+        )}
         <button 
           onClick={() => signOut({ callbackUrl: '/' })} 
           className="px-3 py-1 text-sm rounded-md bg-red-600 text-white"
@@ -22,7 +27,7 @@ export default function LoginButton() {
     );
   }
 
-  // Ha a felhasználó nincs bejelentkezve, egy linket mutatunk a bejelentkezési oldalra
+  // Ha a felhasználó nincs bejelentkezve
   return (
     <Link 
       href="/signin" 

@@ -8,12 +8,25 @@ import Link from 'next/link';
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState(''); // ÚJ: Jelszó megerősítése
   const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Kliensoldali ellenőrzés: a két jelszó egyezik-e
+    if (password !== passwordConfirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    
+    // Kliensoldali ellenőrzés: jelszó hossza
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
 
     const res = await fetch('/api/register', {
       method: 'POST',
@@ -24,6 +37,7 @@ export default function RegisterPage() {
     if (res.ok) {
       router.push('/signin');
     } else {
+      // Itt jelenítjük meg a backendről kapott hibát
       const data = await res.json();
       setError(data.error || 'An unexpected error occurred');
     }
@@ -34,7 +48,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center">Create an Account</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <p className="text-red-500 text-center">{error}</p>}
+          {error && <p className="text-red-500 text-center text-sm">{error}</p>}
           <div>
             <label className="block text-sm font-medium">Email</label>
             <input
@@ -51,6 +65,17 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 mt-1 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            />
+          </div>
+          {/* ÚJ: Jelszó megerősítése mező */}
+          <div>
+            <label className="block text-sm font-medium">Confirm Password</label>
+            <input
+              type="password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
               required
               className="w-full px-3 py-2 mt-1 border rounded-md dark:bg-gray-700 dark:border-gray-600"
             />

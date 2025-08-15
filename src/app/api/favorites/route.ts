@@ -1,8 +1,10 @@
 // src/app/api/favorites/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // JAVÍTÁS ITT: Az új, központi helyről importálunk
-import prisma from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { db } from '@/lib/drizzle';
+import { favoriteCoins } from '@/lib/schema';
+import { and, eq } from 'drizzle-orm';
 
 // GET: Lekéri a felhasználó kedvenceit
 export async function GET() {
@@ -10,21 +12,18 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      // Ha nincs bejelentkezve, üres tömböt adunk vissza
       return NextResponse.json([]);
     }
+    
+    // Kedvencek lekérdezése (Drizzle szintaxis)
+    const favorites = await db.select({ 
+      coinId: favoriteCoins.coinId 
+    }).from(favoriteCoins).where(eq(favoriteCoins.userId, session.user.id));
 
-    const favorites = await prisma.favoriteCoin.findMany({
-      where: { userId: session.user.id },
-      select: { coinId: true }, // Csak a coin ID-kat adjuk vissza
-    });
-
-    // A .map() biztosítja, hogy a válasz egy stringekből álló tömb legyen
     return NextResponse.json(favorites.map(fav => fav.coinId));
 
   } catch (error) {
     console.error("Favorites GET Error:", error);
-    // Hiba esetén is egy üres tömböt adunk vissza, hogy a frontend ne törjön el
     return NextResponse.json([], { status: 500 });
   }
 }
@@ -45,21 +44,23 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session.user.id;
-
-    const existingFavorite = await prisma.favoriteCoin.findUnique({
-      where: {
-        userId_coinId: { userId, coinId },
-      },
+    
+    // Ellenőrizzük, létezik-e már a kedvenc (Drizzle szintaxis)
+    const existingFavorite = await db.query.favoriteCoins.findFirst({
+        where: and(eq(favoriteCoins.userId, userId), eq(favoriteCoins.coinId, coinId)),
     });
 
     if (existingFavorite) {
-      await prisma.favoriteCoin.delete({
-        where: { id: existingFavorite.id },
-      });
+      // Ha létezik, töröljük (Drizzle szintaxis)
+      await db.delete(favoriteCoins).where(eq(favoriteCoins.id, existingFavorite.id));
       return NextResponse.json({ message: 'Favorite removed' });
     } else {
-      await prisma.favoriteCoin.create({
-        data: { userId, coinId, symbol },
+      // Ha nem létezik, hozzáadjuk (Drizzle szintaxis)
+      await db.insert(favoriteCoins).values({
+        id: crypto.randomUUID(), // Drizzle nem generál ID-t
+        userId,
+        coinId,
+        symbol,
       });
       return NextResponse.json({ message: 'Favorite added' });
     }

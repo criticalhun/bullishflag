@@ -41,7 +41,6 @@ const timeOptions = [
   { label: '90 Days', value: '90d' },
 ] as const;
 
-// Visszaállítottuk a fix limit opciókat
 const limitOptions = [100, 500, 1000, 2000, 5000] as const;
 
 export default function Home() {
@@ -172,7 +171,6 @@ export default function Home() {
 
       <div className="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md mb-8">
         <div className="flex flex-wrap gap-4 justify-center">
-          {/* --- JAVÍTÁS ITT: Visszaállítottuk a legördülő menüt --- */}
           <div className="text-sm flex items-center">
             <span className="mr-2">Limit:</span>
             <Select

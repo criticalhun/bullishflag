@@ -1,14 +1,14 @@
 // src/app/api/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import bcrypt from "bcryptjs";
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { email, password } = await req.json();
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -21,24 +21,16 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
-        name,
         email,
         password: hashedPassword,
       },
     });
 
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      }
-    }, { status: 201 });
+    return NextResponse.json({ message: 'User created successfully' }, { status: 201 });
 
   } catch (error) {
-    console.error("Registration Error:", error);
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
   }
 }

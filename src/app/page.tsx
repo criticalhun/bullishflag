@@ -15,7 +15,6 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import ChatWithAI from '@/components/ChatWithAI';
 import LoginButton from '@/components/LoginButton';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 
@@ -282,7 +281,7 @@ export default function Home() {
         </>
       )}
 
-      <ChatWithAI topCoins={topCoins} />
+      
     </main>
   );
 }
